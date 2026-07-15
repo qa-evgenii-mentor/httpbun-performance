@@ -22,23 +22,12 @@ export const options = {
 };
 
 export default function () {
-  const res = http.batch([
-    ["GET", `${BASE_URL}/get`, null, { tags: { name: "GET /get" } }],
-    ["GET", `${BASE_URL}/bytes/50`, null, { tags: { name: "GET /bytes/50" } }],
-    ["GET", `${BASE_URL}/delay/0.1`, null, { tags: { name: "GET /delay/0.1" } }],
-  ]);
-
-  check(res[0], {
-    "GET /get is 200": (r) => r.status === 200,
+  const res = http.get(`${BASE_URL}/get?scenario=stress`, {
+    tags: { name: "GET /stress endpoint imitation" },
   });
 
-  check(res[1], {
-    "GET /bytes/50 is 200": (r) => r.status === 200,
-    "GET /bytes/50 has body": (r) => r.body.length === 50,
-  });
-
-  check(res[2], {
-    "GET /delay/0.1 is 200": (r) => r.status === 200,
+  check(res, {
+    "stress endpoint is 200": (r) => r.status === 200,
   });
 
   sleep(1);

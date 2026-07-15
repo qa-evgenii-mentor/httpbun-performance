@@ -7,14 +7,8 @@ Docker здесь используется только как runner для k6.
 ## Что внутри
 
 - `docker-compose.yml` запускает контейнер `grafana/k6`.
-- `k6/httpbun-smoke.js` - короткая проверка доступности.
-- `k6/httpbun-single-endpoint.js` - первая простая нагрузка на одну ручку.
-- `k6/httpbun-api-mix.js` - основной сценарий: поиск в каталоге, auth context, создание заказа.
-- `k6/httpbun-explore.js` - обзорный сценарий по возможностям Httpbun: payload, mix, auth, cache, etag, redirects.
-- `k6/httpbun-load.js` - load test с ожидаемым стабильным профилем.
-- `k6/httpbun-spike.js` - spike test для резкого скачка трафика.
-- `k6/httpbun-soak.js` - короткий soak-шаблон, длительность настраивается через env.
-- `k6/httpbun-stress.js` - простой stress test.
+- `k6/` - основной учебный маршрут, файлы пронумерованы по порядку запуска.
+- `examples/httpbun-explore.js` - дополнительный обзор возможностей Httpbun: payload, mix, auth, cache, etag, redirects.
 - `.env.example` - шаблон переменных для Grafana Cloud.
 
 ## Подготовка
@@ -53,49 +47,49 @@ K6_CLOUD_PROJECT_ID=...
 Запуск smoke test:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/httpbun-smoke.js
+docker compose run --rm k6 cloud /scripts/01-smoke.js
 ```
 
 Первая простая нагрузка на одну ручку:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/httpbun-single-endpoint.js
+docker compose run --rm k6 cloud /scripts/02-single-endpoint.js
 ```
 
 Основной учебный сценарий:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/httpbun-api-mix.js
+docker compose run --rm k6 cloud /scripts/03-business-flow.js
 ```
 
 Load test:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/httpbun-load.js
+docker compose run --rm k6 cloud /scripts/04-load.js
 ```
 
 Spike test:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/httpbun-spike.js
+docker compose run --rm k6 cloud /scripts/06-spike.js
 ```
 
 Soak test:
 
 ```powershell
-docker compose run --rm -e DURATION=30m k6 cloud /scripts/httpbun-soak.js
+docker compose run --rm -e DURATION=30m k6 cloud /scripts/07-soak.js
 ```
 
 Обзор возможностей Httpbun:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/httpbun-explore.js
+docker compose run --rm k6 cloud /examples/httpbun-explore.js
 ```
 
 Stress test:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/httpbun-stress.js
+docker compose run --rm k6 cloud /scripts/05-stress.js
 ```
 
 После запуска k6 напечатает ссылку на test run в Grafana Cloud.

@@ -8,4 +8,5 @@ services:
       K6_PROMETHEUS_RW_TREND_STATS: p(90),p(95),p(99),min,max,avg
     volumes:
       - ./k6:/scripts:ro
+      - ./examples:/examples:ro
     entrypoint: ["k6"]

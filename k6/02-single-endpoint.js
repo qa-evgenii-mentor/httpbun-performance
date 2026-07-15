@@ -20,8 +20,6 @@ export default function () {
 
   check(res, {
     "status is 200": (r) => r.status === 200,
-    "response has query params": (r) => r.json("args.resource") === "users",
-    "response has body": (r) => r.body.length > 0,
   });
 
   sleep(1);

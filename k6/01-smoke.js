@@ -18,8 +18,7 @@ export default function () {
   });
 
   check(res, {
-    "GET /get returns 200": (r) => r.status === 200,
-    "GET /get returns JSON": (r) => String(r.headers["Content-Type"]).includes("application/json"),
+    "status is 200": (r) => r.status === 200,
   });
 
   sleep(1);

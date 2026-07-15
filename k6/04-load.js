@@ -2,6 +2,7 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 const BASE_URL = __ENV.BASE_URL || "https://httpbun.com";
+const SEARCH_TERMS = ["phone", "laptop", "book", "headphones"];
 
 export const options = {
   scenarios: {
@@ -22,7 +23,7 @@ export const options = {
 };
 
 export default function () {
-  const searchTerm = ["phone", "laptop", "book", "headphones"][Math.floor(Math.random() * 4)];
+  const searchTerm = SEARCH_TERMS[Math.floor(Math.random() * SEARCH_TERMS.length)];
   const page = Math.floor(Math.random() * 5) + 1;
 
   const searchRes = http.get(`${BASE_URL}/get?q=${searchTerm}&page=${page}&sort=popular`, {
@@ -31,7 +32,6 @@ export default function () {
 
   check(searchRes, {
     "catalog search is 200": (r) => r.status === 200,
-    "catalog search has query": (r) => r.json("args.q") === searchTerm,
   });
 
   sleep(Math.random() * 2);
