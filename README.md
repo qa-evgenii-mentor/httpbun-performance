@@ -2,141 +2,136 @@
 
 Мини-стенд для практики нагрузочного тестирования на публичном сервисе [httpbun.com](https://httpbun.com/).
 
-Docker здесь используется только как runner для k6. Локальные Prometheus и Grafana не нужны: результаты отправляются в Grafana Cloud.
+Основной способ запуска для курса: локальный `k6 cloud`. Результаты появляются в Grafana Cloud, локальные Prometheus и Grafana не нужны.
 
 ## Что внутри
 
-- `docker-compose.yml` запускает контейнер `grafana/k6`.
-- `k6/` - основной учебный маршрут, файлы пронумерованы по порядку запуска.
-- `examples/httpbun-explore.js` - дополнительный обзор возможностей Httpbun: payload, mix, auth, cache, etag, redirects.
-- `.env.example` - шаблон переменных для Grafana Cloud.
+- `k6/01-smoke.js` - быстрая проверка, что сервис отвечает.
+- `k6/02-load.js` - обычная ожидаемая нагрузка.
+- `k6/03-stress.js` - постепенное увеличение нагрузки.
+- `k6/04-spike.js` - резкий скачок трафика.
+- `k6/05-soak.js` - длительная стабильная нагрузка.
+- `k6/06-single-endpoint.js` - первая простая нагрузка на одну ручку.
+- `k6/07-business-flow.js` - учебный бизнес-сценарий: поиск и создание заказа.
+- `examples/httpbun-explore.js` - дополнительный обзор возможностей Httpbun.
+- `.env.example` - шаблон переменных для Grafana Cloud и настройки нагрузки.
 
-## Подготовка
+## Установка k6
 
-Проверь Docker:
+На Windows проще всего поставить k6 через `winget`:
 
 ```powershell
-docker --version
-docker compose version
-docker info
+winget install k6.k6
 ```
 
-Если `docker --version` работает, но `docker info` пишет `failed to connect to the docker API at npipe:////./pipe/docker_engine`, открой Docker Desktop из Start Menu и дождись статуса `Docker Desktop is running`.
+Проверь установку:
+
+```powershell
+k6 version
+```
+
+## Авторизация в Grafana Cloud
 
 Создай локальный `.env`:
 
-```powershell
-Copy-Item .env.example .env
-```
-
-## Вариант A: Grafana Cloud k6
-
-Это рекомендуемый вариант для курса: Grafana Cloud сам показывает test runs, checks, thresholds, latency и ошибки.
-
-1. Открой Grafana Cloud.
-2. Перейди в раздел `Testing & synthetics` или `k6`.
-3. Создай project или выбери существующий.
-4. Создай API token для k6.
-5. Заполни в `.env`:
+Заполни в `.env`:
 
 ```text
 K6_CLOUD_TOKEN=...
 K6_CLOUD_PROJECT_ID=...
 ```
 
-Запуск smoke test:
+PowerShell сам не подгружает `.env`, поэтому перед запуском тестов выстави переменные окружения:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/01-smoke.js
+$env:K6_CLOUD_TOKEN="..."
+$env:K6_CLOUD_PROJECT_ID="..."
+$env:BASE_URL="https://httpbun.com"
 ```
 
-Первая простая нагрузка на одну ручку:
+Можно один раз авторизоваться командой:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/02-single-endpoint.js
+k6 login cloud --token $env:K6_CLOUD_TOKEN
 ```
 
-Основной учебный сценарий:
+После этого запускай сценарии через `k6 cloud`.
+
+## Запуск сценариев
+
+Smoke test:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/03-business-flow.js
+k6 cloud k6/01-smoke.js
 ```
 
 Load test:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/04-load.js
-```
-
-Spike test:
-
-```powershell
-docker compose run --rm k6 cloud /scripts/06-spike.js
-```
-
-Soak test:
-
-```powershell
-docker compose run --rm -e DURATION=30m k6 cloud /scripts/07-soak.js
-```
-
-Обзор возможностей Httpbun:
-
-```powershell
-docker compose run --rm k6 cloud /examples/httpbun-explore.js
+k6 cloud k6/02-load.js
 ```
 
 Stress test:
 
 ```powershell
-docker compose run --rm k6 cloud /scripts/05-stress.js
+k6 cloud k6/03-stress.js
+```
+
+Spike test:
+
+```powershell
+k6 cloud k6/04-spike.js
+```
+
+Soak test:
+
+```powershell
+$env:DURATION="30m"
+k6 cloud k6/05-soak.js
+```
+
+Первая простая нагрузка на одну ручку:
+
+```powershell
+k6 cloud k6/06-single-endpoint.js
+```
+
+Учебный бизнес-сценарий:
+
+```powershell
+k6 cloud k6/07-business-flow.js
 ```
 
 После запуска k6 напечатает ссылку на test run в Grafana Cloud.
 
-## Вариант B: Grafana Cloud Metrics
+## Настройка нагрузки
 
-Этот вариант полезен, если вы хотите строить свой dashboard в Grafana Cloud поверх Prometheus metrics.
-
-В Grafana Cloud открой Prometheus details и скопируй:
-
-- Remote write endpoint.
-- Instance ID или username.
-- API token с правами на metrics publish.
-
-Заполни в `.env`:
-
-```text
-K6_PROMETHEUS_RW_SERVER_URL=https://prometheus-prod-XX.grafana.net/api/prom/push
-K6_PROMETHEUS_RW_USERNAME=...
-K6_PROMETHEUS_RW_PASSWORD=...
-```
-
-Запуск:
+Некоторые сценарии читают параметры из переменных окружения:
 
 ```powershell
-docker compose run --rm k6 run -o experimental-prometheus-rw /scripts/httpbun-api-mix.js
+$env:VUS="10"
+$env:DURATION="2m"
+$env:TARGET_VUS="20"
+$env:RAMP_UP="1m"
+$env:HOLD="5m"
+$env:RAMP_DOWN="1m"
 ```
 
-В Grafana Cloud Explore выбери Prometheus datasource и проверь метрики:
+Запись вида `Number(__ENV.VUS || 5)` означает: возьми `VUS` из окружения, а если его нет, используй `5`. Все такие переменные перечислены в `.env.example`.
 
-```promql
-k6_http_reqs_total
-k6_http_req_duration_p95
-k6_http_req_failed_rate
-k6_checks_rate
+## Что такое tags
+
+`tags` в k6 - это метки для метрик. Например:
+
+```javascript
+http.get(`${BASE_URL}/get`, {
+  tags: { name: "GET /users imitation" },
+});
 ```
 
-## Идея маленького курса
+Без такого тега Grafana может показывать много похожих URL с разными query params. С тегом `name` в результатах проще увидеть один понятный endpoint или шаг сценария: `GET /users imitation`, `POST /orders imitation` и так далее.
 
-1. Базовая модель k6: VU, iteration, checks, thresholds.
-2. HTTP минимум: methods, headers, status codes, body, auth context, assertions.
-3. Первый запуск: одна простая ручка, чтобы участник получил результат за 10 минут.
-4. Реальная задача: рекламная кампания, рост трафика, поиск в каталоге и создание заказа.
-5. Метрики: p95/p99, RPS, error rate, checks, thresholds.
-6. Виды нагрузки: load, stress, spike, soak.
-7. Удаленный запуск: тот же Docker/k6 workflow на VPS.
-8. Итоговый отчет: цель, стенд, профиль, результаты, проблемы, выводы.
+`tags` помогают красиво группировать запросы в Grafana Cloud.
 
 ## Пример учебной задачи
 
@@ -191,12 +186,8 @@ p95, error rate, checks, RPS или другие важные ограничен
 
 ## Важное про публичный сервис
 
-`httpbun.com` подходит для обучения, но не стоит атаковать публичный сервис большими профилями нагрузки. Для интенсивных прогонов лучше поднять локальный Httpbun и поменять `BASE_URL`:
+`httpbun.com` подходит для обучения, но не стоит атаковать публичный сервис большими профилями нагрузки. В рамках курса держим профили небольшими: короткая длительность, умеренное количество VU, понятные thresholds.
 
 ```powershell
-docker run --rm -p 8080:80 sharat87/httpbun
-```
-
-```text
-BASE_URL=http://host.docker.internal:8080
+$env:BASE_URL="https://httpbun.com"
 ```
