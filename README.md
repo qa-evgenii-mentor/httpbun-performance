@@ -32,74 +32,88 @@ k6 version
 
 ## Авторизация в Grafana Cloud
 
-Создай локальный `.env`:
+Один раз авторизуйся в Grafana Cloud k6:
 
-Заполни в `.env`:
+```powershell
+k6 cloud login
+```
+
+После этого k6 попросит token:
 
 ```text
-K6_CLOUD_TOKEN=...
-K6_CLOUD_PROJECT_ID=...
+Enter your token to authenticate with Grafana Cloud k6.
+Please, consult the Grafana Cloud k6 documentation for instructions on how to generate one:
+https://grafana.com/docs/grafana-cloud/testing/k6/author-run/tokens-and-cli-authentication
+
+  Token:
+Logged in successfully, token saved in C:\Users\evgen\AppData\Roaming\k6\config.json
 ```
 
-PowerShell сам не подгружает `.env`, поэтому перед запуском тестов выстави переменные окружения:
+Token сохранится в локальный config k6. После этого запускай сценарии через `k6 cloud run`.
+
+`.env` можно использовать для настройки `BASE_URL`, `VUS`, `DURATION` и других параметров нагрузки, но для авторизации проще использовать `k6 cloud login`.
+
+Project id для Grafana Cloud берется из переменной `K6_CLOUD_PROJECT_ID`:
+
+```javascript
+const CLOUD_PROJECT_ID = Number(__ENV.K6_CLOUD_PROJECT_ID || 8104573);
+
+cloud: {
+  projectID: CLOUD_PROJECT_ID,
+}
+```
+
+Если переменная не задана, сценарий использует project `8104573`. Это защищает от ситуации, когда k6 отправляет результат в default project аккаунта.
+
+В PowerShell можно явно задать project id так:
 
 ```powershell
-$env:K6_CLOUD_TOKEN="..."
-$env:K6_CLOUD_PROJECT_ID="..."
-$env:BASE_URL="https://httpbun.com"
+$env:K6_CLOUD_PROJECT_ID="8104573"
 ```
-
-Можно один раз авторизоваться командой:
-
-```powershell
-k6 login cloud --token $env:K6_CLOUD_TOKEN
-```
-
-После этого запускай сценарии через `k6 cloud`.
 
 ## Запуск сценариев
 
 Smoke test:
 
 ```powershell
-k6 cloud k6/01-smoke.js
+k6 cloud run k6/01-smoke.js
 ```
 
 Load test:
 
 ```powershell
-k6 cloud k6/02-load.js
+k6 cloud run k6/02-load.js
 ```
 
 Stress test:
 
 ```powershell
-k6 cloud k6/03-stress.js
+k6 cloud run k6/03-stress.js
 ```
 
 Spike test:
 
 ```powershell
-k6 cloud k6/04-spike.js
+k6 cloud run k6/04-spike.js
 ```
 
 Soak test:
 
 ```powershell
 $env:DURATION="30m"
-k6 cloud k6/05-soak.js
+k6 cloud run k6/05-soak.js
 ```
 
 Первая простая нагрузка на одну ручку:
 
 ```powershell
-k6 cloud k6/06-single-endpoint.js
+k6 cloud run k6/06-single-endpoint.js
 ```
 
 Учебный бизнес-сценарий:
 
 ```powershell
-k6 cloud k6/07-business-flow.js
+k6 cloud run k6/07-business-flow.js
 ```
 
 После запуска k6 напечатает ссылку на test run в Grafana Cloud.

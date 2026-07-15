@@ -3,8 +3,12 @@ import http from "k6/http";
 import { check, group, sleep } from "k6";
 
 const BASE_URL = __ENV.BASE_URL || "https://httpbun.com";
+const CLOUD_PROJECT_ID = Number(__ENV.K6_CLOUD_PROJECT_ID || 8104573);
 
 export const options = {
+  cloud: {
+    projectID: CLOUD_PROJECT_ID,
+  },
   vus: 2,
   duration: "1m",
   thresholds: {

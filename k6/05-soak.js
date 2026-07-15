@@ -2,12 +2,17 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 const BASE_URL = __ENV.BASE_URL || "https://httpbun.com";
+const CLOUD_PROJECT_ID = Number(__ENV.K6_CLOUD_PROJECT_ID || 8104573);
+const VUS = Number(__ENV.VUS || 5);
 
 export const options = {
+  cloud: {
+    projectID: CLOUD_PROJECT_ID,
+  },
   scenarios: {
     soak: {
       executor: "constant-vus",
-      vus: Number(__ENV.VUS || 5),
+      vus: VUS,
       duration: __ENV.DURATION || "10m",
     },
   },

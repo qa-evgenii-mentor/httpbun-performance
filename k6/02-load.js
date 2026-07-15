@@ -2,15 +2,20 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 const BASE_URL = __ENV.BASE_URL || "https://httpbun.com";
+const CLOUD_PROJECT_ID = Number(__ENV.K6_CLOUD_PROJECT_ID || 8104573);
 const SEARCH_TERMS = ["phone", "laptop", "book", "headphones"];
+const TARGET_VUS = Number(__ENV.TARGET_VUS || 10);
 
 export const options = {
+  cloud: {
+    projectID: CLOUD_PROJECT_ID,
+  },
   scenarios: {
     load: {
       executor: "ramping-vus",
       stages: [
-        { duration: __ENV.RAMP_UP || "1m", target: Number(__ENV.TARGET_VUS || 10) },
-        { duration: __ENV.HOLD || "3m", target: Number(__ENV.TARGET_VUS || 10) },
+        { duration: __ENV.RAMP_UP || "1m", target: TARGET_VUS },
+        { duration: __ENV.HOLD || "3m", target: TARGET_VUS },
         { duration: __ENV.RAMP_DOWN || "1m", target: 0 },
       ],
     },
