@@ -28,6 +28,30 @@ winget install k6.k6
 k6 version
 ```
 
+## Форматирование кода
+
+Для запуска k6-тестов `npm install` не нужен. Достаточно установленного k6.
+
+`npm install` нужен только если хочешь использовать локальный Prettier из проекта:
+
+```powershell
+npm install
+```
+
+Проверить форматирование:
+
+```powershell
+npm run format:check
+```
+
+Отформатировать файлы:
+
+```powershell
+npm run format
+```
+
+Если работаешь в VS Code, редактор предложит установить расширение Prettier и будет форматировать файлы при сохранении.
+
 ## Авторизация в Grafana Cloud
 
 Один раз авторизуйся в Grafana Cloud k6:

@@ -1,1 +1,13 @@
 .env
+.env.*
+
+node_modules/
+
+*.log
+summary.json
+results/
+reports/
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
