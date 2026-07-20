@@ -13,8 +13,6 @@
 - `k6/05-soak.js` - длительная стабильная нагрузка.
 - `k6/06-single-endpoint.js` - первая простая нагрузка на одну ручку.
 - `k6/07-business-flow.js` - учебный бизнес-сценарий: поиск и создание заказа.
-- `examples/httpbun-explore.js` - дополнительный обзор возможностей Httpbun.
-- `.env.example` - шаблон переменных для Grafana Cloud и настройки нагрузки.
 
 ## Установка k6
 
@@ -51,8 +49,6 @@ Logged in successfully, token saved in C:\Users\evgen\AppData\Roaming\k6\config.
 
 Token сохранится в локальный config k6. После этого запускай сценарии через `k6 cloud run`.
 
-`.env` можно использовать для настройки `BASE_URL`, `VUS`, `DURATION` и других параметров нагрузки, но для авторизации проще использовать `k6 cloud login`.
-
 Project id для Grafana Cloud берется из переменной `K6_CLOUD_PROJECT_ID`:
 
 ```javascript
@@ -65,10 +61,10 @@ cloud: {
 
 Если переменная не задана, сценарий использует project `8104573`. Это защищает от ситуации, когда k6 отправляет результат в default project аккаунта.
 
-В PowerShell можно явно задать project id так:
+Для учеников самый понятный способ передавать настройки - через флаг `-e` в команде запуска:
 
 ```powershell
-$env:K6_CLOUD_PROJECT_ID="8104573"
+k6 cloud run -e K6_CLOUD_PROJECT_ID=8104573 k6/01-smoke.js
 ```
 
 ## Запуск сценариев
@@ -100,8 +96,7 @@ k6 cloud run k6/04-spike.js
 Soak test:
 
 ```powershell
-$env:DURATION="30m"
-k6 cloud run k6/05-soak.js
+k6 cloud run -e DURATION=30m k6/05-soak.js
 ```
 
 Первая простая нагрузка на одну ручку:
@@ -118,20 +113,41 @@ k6 cloud run k6/07-business-flow.js
 
 После запуска k6 напечатает ссылку на test run в Grafana Cloud.
 
+## Ежедневный запуск в GitHub Actions
+
+В репозитории есть workflow `.github/workflows/daily-k6.yml`. Он запускает `k6/01-smoke.js` каждый день по расписанию и вручную через кнопку `Run workflow`.
+
+Для работы workflow добавь в GitHub:
+
+- Secret `K6_CLOUD_TOKEN` - token из Grafana Cloud k6.
+- Variable `K6_CLOUD_PROJECT_ID` - например `8104573`.
+- Variable `BASE_URL` - например `https://httpbun.com`.
+
+Путь в GitHub: `Settings` -> `Secrets and variables` -> `Actions`.
+
 ## Настройка нагрузки
 
-Некоторые сценарии читают параметры из переменных окружения:
+Некоторые сценарии читают параметры из переменных окружения. Передаем их явно через `-e`, чтобы было видно, что именно влияет на запуск:
 
 ```powershell
-$env:VUS="10"
-$env:DURATION="2m"
-$env:TARGET_VUS="20"
-$env:RAMP_UP="1m"
-$env:HOLD="5m"
-$env:RAMP_DOWN="1m"
+k6 cloud run `
+  -e BASE_URL=https://httpbun.com `
+  -e K6_CLOUD_PROJECT_ID=8104573 `
+  -e VUS=10 `
+  -e DURATION=2m `
+  k6/06-single-endpoint.js
 ```
 
-Запись вида `Number(__ENV.VUS || 5)` означает: возьми `VUS` из окружения, а если его нет, используй `5`. Все такие переменные перечислены в `.env.example`.
+Запись вида `Number(__ENV.VUS || 5)` означает: возьми `VUS` из окружения, а если его нет, используй `5`.
+
+В этом проекте используются такие переменные:
+
+- `BASE_URL` - адрес тестируемого сервиса, по умолчанию `https://httpbun.com`.
+- `K6_CLOUD_PROJECT_ID` - project id в Grafana Cloud, по умолчанию `8104573`.
+- `VUS` - количество виртуальных пользователей в `05-soak.js` и `06-single-endpoint.js`.
+- `DURATION` - длительность теста в `05-soak.js` и `06-single-endpoint.js`.
+
+Профили `load`, `stress` и `spike` специально описаны прямо в файлах сценариев через `stages`, чтобы ученики видели форму нагрузки в коде.
 
 ## Что такое tags
 
@@ -203,5 +219,5 @@ p95, error rate, checks, RPS или другие важные ограничен
 `httpbun.com` подходит для обучения, но не стоит атаковать публичный сервис большими профилями нагрузки. В рамках курса держим профили небольшими: короткая длительность, умеренное количество VU, понятные thresholds.
 
 ```powershell
-$env:BASE_URL="https://httpbun.com"
+k6 cloud run -e BASE_URL=https://httpbun.com k6/01-smoke.js
 ```
