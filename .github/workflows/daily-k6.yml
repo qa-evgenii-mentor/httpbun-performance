@@ -1,0 +1,29 @@
+﻿name: Daily k6 smoke test
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Prague time: 10:00 AM
+    - cron: "0 8 * * *"
+
+jobs:
+  k6-cloud:
+    name: Run k6 in Grafana Cloud
+    runs-on: ubuntu-latest
+    env:
+      K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+      K6_CLOUD_PROJECT_ID: ${{ vars.K6_CLOUD_PROJECT_ID || '8104573' }}
+      BASE_URL: ${{ vars.BASE_URL || 'https://httpbun.com' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Login to Grafana Cloud k6
+        run: k6 cloud login --token "$K6_CLOUD_TOKEN"
+
+      - name: Run smoke test in Grafana Cloud
+        run: k6 cloud run k6/01-smoke.js

@@ -33,6 +33,4 @@ export default function () {
   check(res, {
     "stress endpoint is 200": (r) => r.status === 200,
   });
-
-  sleep(1);
 }
