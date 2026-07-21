@@ -144,6 +144,7 @@ k6 cloud run k6/07-business-flow.js
 Для работы workflow добавь в GitHub:
 
 - Secret `K6_CLOUD_TOKEN` - token из Grafana Cloud k6.
+- Variable `K6_CLOUD_STACK` - stack slug, например `qaevgenii` для `https://qaevgenii.grafana.net`.
 - Variable `K6_CLOUD_PROJECT_ID` - например `8104573`.
 - Variable `BASE_URL` - например `https://httpbun.com`.
 

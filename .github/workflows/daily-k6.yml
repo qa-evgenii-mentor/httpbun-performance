@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+      K6_CLOUD_STACK: ${{ vars.K6_CLOUD_STACK || 'qaevgenii' }}
       K6_CLOUD_PROJECT_ID: ${{ vars.K6_CLOUD_PROJECT_ID || '8104573' }}
       BASE_URL: ${{ vars.BASE_URL || 'https://httpbun.com' }}
 
@@ -28,8 +29,15 @@ jobs:
           echo "K6_CLOUD_TOKEN secret is required."
           exit 1
 
+      - name: Check Grafana Cloud stack
+        if: env.K6_CLOUD_STACK == ''
+        run: |
+          echo "K6_CLOUD_STACK variable is required."
+          echo "Use your Grafana Cloud stack slug, for example: qaevgenii"
+          exit 1
+
       - name: Login to Grafana Cloud k6
-        run: k6 cloud login --token "$K6_CLOUD_TOKEN"
+        run: k6 cloud login --token "$K6_CLOUD_TOKEN" --stack "$K6_CLOUD_STACK"
 
       - name: Run smoke test in Grafana Cloud
         run: k6 cloud run k6/01-smoke.js
