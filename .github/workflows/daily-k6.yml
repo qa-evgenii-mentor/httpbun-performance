@@ -1,10 +1,10 @@
-﻿name: Daily k6 smoke test
+name: Daily k6 smoke test
 
 on:
   workflow_dispatch:
   schedule:
-    # Prague time: 10:00 AM
-    - cron: "0 8 * * *"
+    # Prague time: 20:45 during summer time (18:45 UTC).
+    - cron: "45 18 * * *"
 
 jobs:
   k6-cloud:
