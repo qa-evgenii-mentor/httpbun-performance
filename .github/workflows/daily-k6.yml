@@ -3,7 +3,7 @@ name: Daily k6 smoke test
 on:
   workflow_dispatch:
   schedule:
-    # Prague time: 20:45 during summer time (18:45 UTC).
+    # Europe time: 20:45 during summer time (18:45 UTC).
     - cron: "45 18 * * *"
 
 jobs:
@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
-      K6_CLOUD_STACK: ${{ vars.K6_CLOUD_STACK || 'qaevgenii' }}
-      K6_CLOUD_PROJECT_ID: ${{ vars.K6_CLOUD_PROJECT_ID || '8104573' }}
-      BASE_URL: ${{ vars.BASE_URL || 'https://httpbun.com' }}
+      K6_CLOUD_STACK: ${{ vars.K6_CLOUD_STACK }}
+      K6_CLOUD_PROJECT_ID: ${{ vars.K6_CLOUD_PROJECT_ID }}
+      BASE_URL: ${{ vars.BASE_URL }}
 
     steps:
       - name: Checkout repository
@@ -34,6 +34,20 @@ jobs:
         run: |
           echo "K6_CLOUD_STACK variable is required."
           echo "Use your Grafana Cloud stack slug, for example: qaevgenii"
+          exit 1
+
+      - name: Check Grafana Cloud project id
+        if: env.K6_CLOUD_PROJECT_ID == ''
+        run: |
+          echo "K6_CLOUD_PROJECT_ID variable is required."
+          echo "Add it in GitHub: Settings -> Secrets and variables -> Actions -> Variables."
+          exit 1
+
+      - name: Check target base url
+        if: env.BASE_URL == ''
+        run: |
+          echo "BASE_URL variable is required."
+          echo "Add it in GitHub: Settings -> Secrets and variables -> Actions -> Variables."
           exit 1
 
       - name: Login to Grafana Cloud k6
